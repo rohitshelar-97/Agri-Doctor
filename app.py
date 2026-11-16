@@ -59,49 +59,27 @@ st.set_page_config(
 # Sidebar – Configuration
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Load credentials silently from secrets / env — not exposed in the UI
+api_key = _secret("WATSONX_API_KEY")
+project_id = _secret("WATSONX_PROJECT_ID")
+watsonx_url = _secret("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")
+
+# Push model IDs into env so agents can pick them up
+os.environ["WATSONX_MODEL_ID"] = _secret("WATSONX_MODEL_ID", "ibm/granite-4-h-small")
+os.environ["WATSONX_VISION_MODEL"] = _secret("WATSONX_VISION_MODEL", "mistralai/mistral-small-3-1-24b-instruct-2503")
+
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg", width=80)
-    st.title("⚙️ Configuration")
-
-    st.markdown("### IBM watsonx.ai Credentials")
-    api_key = st.text_input(
-        "API Key",
-        value=_secret("WATSONX_API_KEY"),
-        type="password",
-        help="Your IBM Cloud API key – never shared or logged.",
-    )
-    project_id = st.text_input(
-        "Project ID",
-        value=_secret("WATSONX_PROJECT_ID"),
-        help="Your IBM watsonx.ai Project ID.",
-    )
-    watsonx_url = st.text_input(
-        "Endpoint URL",
-        value=_secret("WATSONX_URL", "https://us-south.ml.cloud.ibm.com"),
-    )
-
+    st.title("🌾 Agri Doctor")
+    st.caption("AI Crop Disease Advisor")
     st.markdown("---")
-    st.markdown("### Model Configuration")
-    text_model = st.text_input(
-        "Text Model",
-        value=_secret("WATSONX_MODEL_ID", "ibm/granite-4-h-small"),
+    st.markdown(
+        "Upload a crop image on the main panel to receive an **instant AI diagnosis** "
+        "and a **farmer-friendly advisory** powered by IBM watsonx.ai."
     )
-    vision_model = st.text_input(
-        "Vision Model",
-        value=_secret("WATSONX_VISION_MODEL", "mistralai/mistral-small-3-1-24b-instruct-2503"),
-    )
-
-    # Push model choices back into env for agents to pick up
-    os.environ["WATSONX_MODEL_ID"] = text_model
-    os.environ["WATSONX_VISION_MODEL"] = vision_model
-
     st.markdown("---")
-    st.info(
-        "🔒 **Security**: Your API key is used only during this session and "
-        "is never stored or logged.",
-        icon="🔒",
-    )
-
+    st.markdown("**Models**")
+    st.caption(f"🔬 Vision: `mistralai/mistral-small-3-1-24b`")
+    st.caption(f"📝 Text:   `ibm/granite-4-h-small`")
     st.markdown("---")
     st.caption("Agri Doctor v1.0 · IBM Hackathon 2026")
 
@@ -148,12 +126,9 @@ with tab_main:
         diagnose_btn = st.button(
             "🩺 Diagnose Crop",
             type="primary",
-            disabled=(uploaded_file is None or not api_key or not project_id),
+            disabled=(uploaded_file is None),
             use_container_width=True,
         )
-
-        if not api_key or not project_id:
-            st.warning("⚠️ Enter your IBM API Key and Project ID in the sidebar to proceed.")
 
     with col_result:
         if diagnose_btn and uploaded_file:
